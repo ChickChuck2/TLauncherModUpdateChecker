@@ -18,9 +18,9 @@ Este documento registra todas as alterações analíticas realizadas no modpack 
      *Efeito*: O inventário agora abre instantaneamente (1 a 2 segundos). Para pesquisar itens pelo texto de seus tooltips, basta digitar `#` antes do termo (ex: `#energia`, `#forge:ingots`).
   2. **ModernFix** (`D:\Games\.minecraft\versions\UltimateMinePack\config\modernfix-mixins.properties`):
      ```properties
-     mixin.perf.blast_search_trees.force=true
+     mixin.perf.blast_search_trees=false
      ```
-     *Efeito*: Desativa a reconstrução congelante da árvore de busca vanilla sem afetar o funcionamento do JEI ou do EMI.
+     *Efeito*: Garante compatibilidade total com o JEI e mods com receitas customizadas (como AoA3, Create, Mekanism). Quando forçado como `true`, o mixin desativava as árvores de busca vanilla e causava a quebra do pacote de rede `ClientboundUpdateRecipesPacket`, fazendo com que o cliente descartasse todas as receitas de mods e exibisse apenas as 1.174 receitas do vanilla Minecraft. Com `=false`, o pacote de sincronização de receitas flui sem erros e o JEI exibe 100% das receitas de todos os mods.
 
 ---
 
