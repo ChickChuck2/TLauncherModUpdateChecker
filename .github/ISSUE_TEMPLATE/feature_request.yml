@@ -1,0 +1,23 @@
+name: "💡 Sugestão de Nova Funcionalidade"
+description: "Sugira uma ideia ou melhoria para o projeto."
+title: "[FEAT]: "
+labels: ["enhancement", "feature"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Adoramos novas ideias da comunidade!
+  - type: textarea
+    id: problem
+    attributes:
+      label: Qual problema essa funcionalidade resolve?
+      placeholder: "Ex: Gostaria de conseguir..."
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Descrição da Solução Ideal
+      placeholder: "Ex: Poderia haver um botão ou opção que..."
+    validations:
+      required: true

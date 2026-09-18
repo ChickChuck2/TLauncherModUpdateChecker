@@ -25,14 +25,31 @@
   </p>
 
   <p align="center">
+    <a href="https://github.com/ChickChuck2/TLauncherModUpdateChecker/stargazers">
+      <img src="https://img.shields.io/github/stars/ChickChuck2/TLauncherModUpdateChecker?style=for-the-badge&logo=github&color=gold" alt="GitHub Stars" />
+    </a>
+    <a href="https://github.com/ChickChuck2/TLauncherModUpdateChecker/network/members">
+      <img src="https://img.shields.io/github/forks/ChickChuck2/TLauncherModUpdateChecker?style=for-the-badge&logo=github&color=blue" alt="GitHub Forks" />
+    </a>
+    <a href="https://github.com/ChickChuck2/TLauncherModUpdateChecker/issues">
+      <img src="https://img.shields.io/github/issues/ChickChuck2/TLauncherModUpdateChecker?style=for-the-badge&logo=github&color=red" alt="GitHub Issues" />
+    </a>
+    <a href="https://github.com/ChickChuck2/TLauncherModUpdateChecker/commits/main">
+      <img src="https://img.shields.io/github/last-commit/ChickChuck2/TLauncherModUpdateChecker?style=for-the-badge&logo=git&logoColor=white&color=emerald" alt="Last Commit" />
+    </a>
+    <img src="https://img.shields.io/github/repo-size/ChickChuck2/TLauncherModUpdateChecker?style=for-the-badge&logo=files&color=blueviolet" alt="Repo Size" />
+  </p>
+
+  <p align="center">
     <a href="#-visão-geral">Visão Geral</a> •
     <a href="#-diferenciais--inovações">Diferenciais</a> •
     <a href="#-funcionalidades">Funcionalidades</a> •
     <a href="#-arquitetura-e-design">Arquitetura</a> •
+    <a href="#-tags--tópicos-do-projeto-seo">Tags & SEO</a> •
     <a href="#-tecnologias">Tecnologias</a> •
     <a href="#-instalação-e-execução">Instalação</a> •
     <a href="#-roadmap">Roadmap</a> •
-    <a href="#-autor">Autor</a>
+    <a href="#-apoie-o-projeto">Apoie</a>
   </p>
 
 </div>
@@ -181,6 +198,41 @@ TLauncherModUpdateChecker/
 
 ---
 
+## 🏷️ Tags & Tópicos do Projeto (SEO)
+
+O projeto está categorizado e tagueado no GitHub para máxima descoberta pela comunidade de Minecraft e desenvolvedores Python:
+
+### 🎮 Ecossistema Minecraft & Modpacks
+<p>
+  <a href="https://github.com/topics/minecraft" target="_blank"><img src="https://img.shields.io/badge/topic-minecraft-2ea44f?style=flat-square&logo=minecraft&logoColor=white" alt="minecraft" /></a>
+  <a href="https://github.com/topics/tlauncher" target="_blank"><img src="https://img.shields.io/badge/topic-tlauncher-00a86b?style=flat-square" alt="tlauncher" /></a>
+  <a href="https://github.com/topics/minecraft-mods" target="_blank"><img src="https://img.shields.io/badge/topic-minecraft--mods-34d058?style=flat-square" alt="minecraft-mods" /></a>
+  <a href="https://github.com/topics/modpack" target="_blank"><img src="https://img.shields.io/badge/topic-modpack-6f42c1?style=flat-square" alt="modpack" /></a>
+  <a href="https://github.com/topics/modpack-manager" target="_blank"><img src="https://img.shields.io/badge/topic-modpack--manager-563d7c?style=flat-square" alt="modpack-manager" /></a>
+  <a href="https://github.com/topics/mod-updater" target="_blank"><img src="https://img.shields.io/badge/topic-mod--updater-8a63d2?style=flat-square" alt="mod-updater" /></a>
+  <a href="https://github.com/topics/forge" target="_blank"><img src="https://img.shields.io/badge/topic-forge-df5e1a?style=flat-square" alt="forge" /></a>
+  <a href="https://github.com/topics/fabric" target="_blank"><img src="https://img.shields.io/badge/topic-fabric-dbb57b?style=flat-square" alt="fabric" /></a>
+  <a href="https://github.com/topics/minecraft-tool" target="_blank"><img src="https://img.shields.io/badge/topic-minecraft--tool-2188ff?style=flat-square" alt="minecraft-tool" /></a>
+</p>
+
+### ⚡ Performance, Sincronização & Segurança
+<p>
+  <a href="https://github.com/topics/performance-optimization" target="_blank"><img src="https://img.shields.io/badge/topic-performance--optimization-d73a49?style=flat-square" alt="performance-optimization" /></a>
+  <a href="https://github.com/topics/fps-boost" target="_blank"><img src="https://img.shields.io/badge/topic-fps--boost-ea4aaa?style=flat-square" alt="fps-boost" /></a>
+  <a href="https://github.com/topics/multiplayer-sync" target="_blank"><img src="https://img.shields.io/badge/topic-multiplayer--sync-0366d6?style=flat-square" alt="multiplayer-sync" /></a>
+  <a href="https://github.com/topics/curseforge" target="_blank"><img src="https://img.shields.io/badge/topic-curseforge-f16436?style=flat-square&logo=curseforge&logoColor=white" alt="curseforge" /></a>
+  <a href="https://github.com/topics/modrinth" target="_blank"><img src="https://img.shields.io/badge/topic-modrinth-1bd96a?style=flat-square&logo=modrinth&logoColor=white" alt="modrinth" /></a>
+</p>
+
+### 🛠️ Interface Gráfica & Engenharia Desktop
+<p>
+  <a href="https://github.com/topics/python" target="_blank"><img src="https://img.shields.io/badge/topic-python-3776ab?style=flat-square&logo=python&logoColor=white" alt="python" /></a>
+  <a href="https://github.com/topics/customtkinter" target="_blank"><img src="https://img.shields.io/badge/topic-customtkinter-1f425f?style=flat-square" alt="customtkinter" /></a>
+  <a href="https://github.com/topics/drag-and-drop" target="_blank"><img src="https://img.shields.io/badge/topic-drag--and--drop-005cc5?style=flat-square" alt="drag-and-drop" /></a>
+</p>
+
+---
+
 ## 🛠️ Tecnologias e Bibliotecas
 
 <div align="center">
@@ -253,6 +305,29 @@ python -m unittest discover tests
 - [ ] Exportação com upload direto em um clique para serviços temporários (GoFile / Catbox) com link encurtado.
 - [ ] Detecção e aviso de dependências ausentes de mods recém-atualizados.
 - [ ] Suporte a perfis de múltiplos lançadores (Prism Launcher / Modrinth App).
+
+---
+
+## ⭐ Apoie o Projeto
+
+Se o **TLauncher Mod Update Checker** facilitou a gestão de mods, sincronização com seus amigos ou eliminou gargalos no seu jogo, considere apoiar o projeto:
+
+- ⭐ **Deixe uma Estrela (Star):** No topo direito desta página para dar visibilidade ao repositório no GitHub!
+- 🍴 **Fork o Repositório:** Crie uma ramificação para desenvolver melhorias ou novas ideias.
+- 📢 **Compartilhe:** Envie o link do repositório para o seu grupo de amigos ou comunidade do Discord.
+- 💡 **Sugira Melhorias:** Abra uma [Issue](https://github.com/ChickChuck2/TLauncherModUpdateChecker/issues) com sugestões de recursos ou problemas encontrados.
+
+<div align="center">
+  <br />
+  <a href="https://github.com/ChickChuck2/TLauncherModUpdateChecker/stargazers">
+    <img src="https://img.shields.io/badge/⭐_Deixar_uma_Estrela-Star_on_GitHub-gold?style=for-the-badge&logo=github" alt="Deixe uma Estrela" />
+  </a>
+  &nbsp;&nbsp;
+  <a href="https://github.com/ChickChuck2/TLauncherModUpdateChecker/fork">
+    <img src="https://img.shields.io/badge/🍴_Fazer_um_Fork-Fork_on_GitHub-blue?style=for-the-badge&logo=github" alt="Fazer Fork" />
+  </a>
+  <br /><br />
+</div>
 
 ---
 

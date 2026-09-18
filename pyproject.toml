@@ -1,0 +1,65 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tlauncher-mod-update-checker"
+version = "1.0.0"
+description = "⚡ Gerenciador e sincronizador de mods TLauncher & Minecraft com Anti-404 Guard e exportação instantânea por arrasto."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "ChickChuck2" }
+]
+keywords = [
+    "minecraft",
+    "tlauncher",
+    "minecraft-mods",
+    "modpack",
+    "modpack-manager",
+    "mod-updater",
+    "curseforge",
+    "modrinth",
+    "customtkinter",
+    "drag-and-drop",
+    "performance-optimization",
+    "fps-boost",
+    "multiplayer-sync",
+    "forge",
+    "fabric",
+    "anti-404-guard",
+    "zero-jar-downloads"
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Win32 (MS Windows)",
+    "Environment :: X11 Applications",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Games/Entertainment :: Simulation",
+    "Topic :: Utilities",
+    "Topic :: System :: Archiving :: Packaging",
+    "Topic :: Desktop Environment"
+]
+dependencies = [
+    "customtkinter",
+    "requests",
+    "Pillow",
+    "packaging"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/ChickChuck2/TLauncherModUpdateChecker"
+"Repository" = "https://github.com/ChickChuck2/TLauncherModUpdateChecker"
+"Bug Tracker" = "https://github.com/ChickChuck2/TLauncherModUpdateChecker/issues"
+"Discussions" = "https://github.com/ChickChuck2/TLauncherModUpdateChecker/discussions"
+"Changelog" = "https://github.com/ChickChuck2/TLauncherModUpdateChecker/releases"

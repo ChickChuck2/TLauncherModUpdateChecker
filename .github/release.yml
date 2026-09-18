@@ -1,0 +1,22 @@
+changelog:
+  categories:
+    - title: "🚀 Novas Funcionalidades (Features)"
+      labels:
+        - "enhancement"
+        - "feature"
+    - title: "⚡ Otimizações & Performance"
+      labels:
+        - "performance"
+        - "optimization"
+    - title: "🐛 Correções de Bugs (Bug Fixes)"
+      labels:
+        - "bug"
+        - "fix"
+    - title: "📝 Documentação & Guias"
+      labels:
+        - "documentation"
+        - "docs"
+    - title: "🛡️ Segurança & Confiabilidade"
+      labels:
+        - "security"
+        - "cdn-guard"
