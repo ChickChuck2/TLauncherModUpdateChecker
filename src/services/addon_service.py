@@ -15,6 +15,7 @@ from typing import List, Optional, Dict, Any, Callable
 from src.core.config import CFWIDGET_API_BASE, TLAUNCHER_RES_BASE, DEFAULT_HEADERS, REQUEST_TIMEOUT
 from src.core.models import AddonType, AddonUpdateStatus
 from src.core.addon_models import AddonItem
+from src.services.update_service import UpdateService
 
 
 def _http_get(url: str, timeout: int = REQUEST_TIMEOUT) -> Optional[Dict[str, Any]]:
@@ -64,6 +65,15 @@ class AddonScannerService:
             sha1 = meta.get("sha1", "")
             size = meta.get("size", 0)
 
+            pic = raw.get("picture")
+            icon_url = f"https://rescl.tlauncher.org/b/pictures/compress/{pic}.png" if pic else None
+
+            raw_pics = raw.get("pictures", [])
+            screenshot_urls = [
+                f"https://rescl.tlauncher.org/b/pictures/max/{p}.png"
+                for p in raw_pics if p
+            ] if isinstance(raw_pics, list) else []
+
             # Status inicial
             is_local = not parser or (aid is not None and aid < 0) or user_install
             status = AddonUpdateStatus.LOCAL_ONLY if is_local else AddonUpdateStatus.PENDING
@@ -88,6 +98,8 @@ class AddonScannerService:
                 authors=authors,
                 categories=cats,
                 status=status,
+                icon_url=icon_url,
+                screenshot_urls=screenshot_urls,
             ))
 
         return items
@@ -190,10 +202,15 @@ class AddonUpdateService:
         encoded_name = urllib.parse.quote(latest_file_name, safe="")
         addon.latest_url = f"{addon.addon_type.url_prefix}/{addon.id}/{latest_file_id}/{encoded_name}"
         addon.tlauncher_available = AddonUpdateService.check_tlauncher_availability(addon)
-        addon.status = (
-            AddonUpdateStatus.TLAUNCHER_OK if addon.tlauncher_available
-            else AddonUpdateStatus.UPDATE_AVAILABLE
-        )
+        if addon.tlauncher_available:
+            addon.status = AddonUpdateStatus.TLAUNCHER_OK
+            sha1, size = UpdateService.fetch_curseforge_file_hash(addon.id, latest_file_id)
+            if sha1:
+                addon.latest_sha1 = sha1
+            if size:
+                addon.latest_size = size
+        else:
+            addon.status = AddonUpdateStatus.UPDATE_AVAILABLE
         return addon
 
     @staticmethod

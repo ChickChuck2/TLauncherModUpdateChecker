@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import List, Tuple
 from src.core.models import AddonType, AddonUpdateStatus
 from src.core.addon_models import AddonItem
+from src.services.update_service import UpdateService
 
 
 class AddonUpdaterService:
@@ -75,6 +76,14 @@ class AddonUpdaterService:
                 ver["name"] = addon.latest_version_name
                 ver["available"] = False
                 ver["remove"] = False
+
+                # Garante que o SHA-1 e tamanho do novo arquivo sejam obtidos
+                if not addon.latest_sha1 and addon.id and addon.latest_file_id:
+                    sha1, size = UpdateService.fetch_curseforge_file_hash(addon.id, addon.latest_file_id)
+                    if sha1:
+                        addon.latest_sha1 = sha1
+                    if size and not addon.latest_size:
+                        addon.latest_size = size
 
                 if addon.latest_sha1:
                     meta["sha1"] = addon.latest_sha1

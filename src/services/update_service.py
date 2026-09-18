@@ -10,6 +10,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Optional, Dict, Any, Callable, List
 from src.core.config import (
     CFWIDGET_API_BASE,
+    CURSE_TOOLS_API_BASE,
     MODRINTH_API_BASE,
     TLAUNCHER_RES_BASE,
     DEFAULT_HEADERS,
@@ -29,6 +30,26 @@ def _http_get(url: str, timeout: int = REQUEST_TIMEOUT) -> Optional[Dict[str, An
 
 
 class UpdateService:
+
+    @staticmethod
+    def fetch_curseforge_file_hash(project_id: int, file_id: int) -> tuple[Optional[str], Optional[int]]:
+        """
+        Consulta o hash SHA-1 e tamanho exato do arquivo via API do CurseForge.
+        """
+        if not project_id or not file_id:
+            return None, None
+        url = f"{CURSE_TOOLS_API_BASE}/mods/{project_id}/files/{file_id}"
+        data = _http_get(url, timeout=6)
+        if not data or not isinstance(data, dict):
+            return None, None
+        file_info = data.get("data", {})
+        sha1 = None
+        for h in file_info.get("hashes", []):
+            if h.get("algo") == 1:  # Algo 1 = SHA-1
+                sha1 = h.get("value")
+                break
+        size = file_info.get("fileLength")
+        return sha1, size
 
     @staticmethod
     def check_tlauncher_availability(project_id: int, file_id: int, jar_name: str) -> bool:
@@ -115,7 +136,7 @@ class UpdateService:
             "upload_date": latest.get("uploaded_at"),
             "release_type": latest.get("type", "release").lower(),
             "sha1": None,
-            "size": None,
+            "size": latest.get("filesize"),
             "changelog": None,
             "dependencies": [],
         }
@@ -247,6 +268,14 @@ class UpdateService:
                     jar_name=mod.latest_jar_name
                 )
                 mod.status = UpdateStatus.TLAUNCHER_CONFIRMED if mod.tlauncher_available else UpdateStatus.UPDATE_AVAILABLE
+
+                # Busca hash SHA-1 e tamanho se ainda não preenchidos
+                if not mod.latest_sha1 and mod.id and mod.latest_file_id:
+                    sha1, size = UpdateService.fetch_curseforge_file_hash(mod.id, mod.latest_file_id)
+                    if sha1:
+                        mod.latest_sha1 = sha1
+                    if size and not mod.latest_size:
+                        mod.latest_size = size
             else:
                 mod.status = UpdateStatus.UPDATE_AVAILABLE
         else:

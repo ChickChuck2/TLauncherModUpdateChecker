@@ -8,6 +8,7 @@ import tkinter as tk
 import customtkinter as ctk
 from typing import List, Callable, Optional
 from src.core.models import ModItem, UpdateStatus
+from src.services.image_service import ImageService
 
 
 SORT_OPTIONS = {
@@ -71,15 +72,17 @@ class ModCard(ctk.CTkFrame):
         self.var_chk = tk.BooleanVar(value=self.mod.selected)
         self.chk = ctk.CTkCheckBox(self, text="", variable=self.var_chk, width=20, command=self._on_chk)
         self.chk.grid(row=0, column=0, rowspan=2, padx=(8, 4), pady=8, sticky="w")
-        can_select = self.mod.status in (UpdateStatus.UPDATE_AVAILABLE, UpdateStatus.TLAUNCHER_CONFIRMED, UpdateStatus.UPDATED)
+        can_select = self.mod.status in (UpdateStatus.TLAUNCHER_CONFIRMED, UpdateStatus.UPDATED)
         self.chk.configure(state="normal" if can_select else "disabled")
 
-        # ---- Ícone placeholder ----
+        # ---- Ícone / Thumbnail ----
         self.icon_lbl = ctk.CTkLabel(
-            self, text="📦", font=ctk.CTkFont(size=20), width=32, anchor="center"
+            self, text="📦", font=ctk.CTkFont(size=20), width=32, height=32, anchor="center"
         )
         self.icon_lbl.grid(row=0, column=1, rowspan=2, padx=(2, 8), pady=6, sticky="w")
         self.icon_lbl.bind("<Button-1>", self._handle_click)
+        self._icon_image = None
+        self._load_icon()
 
         # ---- Nome ----
         self.lbl_name = ctk.CTkLabel(
@@ -111,6 +114,20 @@ class ModCard(ctk.CTkFrame):
         self.badge.grid(row=0, column=3, rowspan=2, padx=(4, 10), pady=8, sticky="e")
         self.badge.bind("<Button-1>", self._handle_click)
 
+    def _load_icon(self):
+        if not self.mod.icon_url:
+            return
+        cached = ImageService.get_sync(self.mod.icon_url, (28, 28))
+        if cached:
+            self._apply_icon(cached)
+        else:
+            ImageService.get_async(self.mod.icon_url, (28, 28), self._apply_icon, root=self)
+
+    def _apply_icon(self, img):
+        if img and self.winfo_exists():
+            self._icon_image = img
+            self.icon_lbl.configure(image=img, text="")
+
     def _handle_click(self, _event=None):
         self.on_click(self.mod)
 
@@ -129,8 +146,10 @@ class ModCard(ctk.CTkFrame):
         self.badge.configure(text=self.mod.status.label, fg_color=self.mod.status.color)
         dl_text = f"⬇ {self.mod.downloads_display}" if self.mod.total_downloads > 0 else "⬇ —"
         self.lbl_dl.configure(text=dl_text)
-        can_select = self.mod.status in (UpdateStatus.UPDATE_AVAILABLE, UpdateStatus.TLAUNCHER_CONFIRMED, UpdateStatus.UPDATED)
+        can_select = self.mod.status in (UpdateStatus.TLAUNCHER_CONFIRMED, UpdateStatus.UPDATED)
         self.chk.configure(state="normal" if can_select else "disabled")
+        if self.mod.icon_url and not self._icon_image:
+            self._load_icon()
 
 
 class ModList(ctk.CTkFrame):

@@ -17,6 +17,7 @@ from src.ui.components.pack_selector import PackSelector
 from src.ui.components.progress_panel import ProgressPanel
 from src.ui.components.mod_list import ModList
 from src.ui.components.detail_panel import DetailPanel
+from src.ui.components.drag_export_card import DragExportCard
 from src.ui.tabs.addon_tab import AddonTab
 
 
@@ -85,8 +86,11 @@ class MainApp(ctk.CTk):
         )
         self.pack_selector.grid(row=0, column=0, sticky="ew", pady=(0, 6))
 
+        self.drag_export_card = DragExportCard(top)
+        self.drag_export_card.grid(row=1, column=0, sticky="ew", pady=(0, 6))
+
         self.progress_panel = ProgressPanel(top)
-        self.progress_panel.grid(row=1, column=0, sticky="ew")
+        self.progress_panel.grid(row=2, column=0, sticky="ew")
 
         # ---- Abas: Mods | Resource Packs & Shaders ----
         self.tabview = ctk.CTkTabview(
@@ -139,6 +143,7 @@ class MainApp(ctk.CTk):
 
     def _on_pack_selected(self, pack: ModpackInfo):
         self.current_modpack = pack
+        self.drag_export_card.set_modpack(pack)
         self.mod_list.set_mods(pack.mods)
         self.detail_panel.clear()
         self.progress_panel.reset()
@@ -284,6 +289,7 @@ class MainApp(ctk.CTk):
         self.mod_list._refresh()
         self._refresh_stats()
         self._update_selected_counter()
+        self.drag_export_card.set_modpack(self.current_modpack)
         # Refresca painel de detalhe
         if self.detail_panel.current_mod:
             self.detail_panel.show_mod(self.detail_panel.current_mod)

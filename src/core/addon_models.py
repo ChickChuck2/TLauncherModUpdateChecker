@@ -32,6 +32,7 @@ class AddonItem:
     # --- Metadados Informativos ---
     description: str = ""
     icon_url: Optional[str] = None
+    screenshot_urls: List[str] = field(default_factory=list)
     categories: List[str] = field(default_factory=list)
     authors: List[str] = field(default_factory=list)
     total_downloads: int = 0

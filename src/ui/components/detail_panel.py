@@ -8,6 +8,7 @@ import webbrowser
 import customtkinter as ctk
 from typing import Optional
 from src.core.models import ModItem, UpdateStatus
+from src.services.image_service import ImageService
 
 
 def _open_url(url: str):
@@ -103,6 +104,7 @@ class DetailPanel(ctk.CTkFrame):
         self._clear_body()
         self._render_header(mod)
         self._render_stats(mod)
+        self._render_screenshots(mod)
         self._render_version_comparison(mod)
         self._render_description(mod)
         self._render_changelog(mod)
@@ -128,7 +130,8 @@ class DetailPanel(ctk.CTkFrame):
         self.lbl_categories.configure(text="")
         self.badge_status.configure(text="—", fg_color="#4a4a4a")
         self.btn_update.configure(state="disabled")
-        self.icon_lbl.configure(text="📦")
+        self.icon_lbl.configure(text="📦", image=None)
+        self._header_img = None
         ctk.CTkLabel(
             self.body_scroll,
             text="Clique em qualquer mod da lista para ver seus detalhes completos aqui.",
@@ -149,8 +152,52 @@ class DetailPanel(ctk.CTkFrame):
         self.badge_status.configure(
             text=mod.status.label, fg_color=mod.status.color
         )
-        can_update = mod.status in (UpdateStatus.TLAUNCHER_CONFIRMED, UpdateStatus.UPDATE_AVAILABLE)
+        can_update = mod.status == UpdateStatus.TLAUNCHER_CONFIRMED
         self.btn_update.configure(state="normal" if can_update else "disabled")
+
+        # Carrega thumbnail em alta definição
+        self.icon_lbl.configure(text="📦", image=None)
+        self._header_img = None
+        if mod.icon_url:
+            cached = ImageService.get_sync(mod.icon_url, (56, 56))
+            if cached:
+                self._apply_header_icon(cached, mod)
+            else:
+                ImageService.get_async(
+                    mod.icon_url, (56, 56),
+                    lambda img, m=mod: self._apply_header_icon(img, m),
+                    root=self
+                )
+
+    def _apply_header_icon(self, img, target_mod):
+        if img and self.winfo_exists() and self.current_mod == target_mod:
+            self._header_img = img
+            self.icon_lbl.configure(image=img, text="")
+
+    def _render_screenshots(self, mod: ModItem):
+        if not mod.screenshot_urls:
+            return
+        sec = self._section("📸 Imagens / Capturas de Tela")
+        scroll_row = ctk.CTkScrollableFrame(sec, orientation="horizontal", height=120, fg_color="transparent")
+        scroll_row.pack(fill="x", padx=0, pady=2)
+
+        for shot_url in mod.screenshot_urls[:6]:
+            frame = ctk.CTkFrame(scroll_row, width=150, height=95, fg_color="#161b22", corner_radius=6)
+            frame.pack(side="left", padx=4, pady=2)
+            frame.pack_propagate(False)
+
+            shot_lbl = ctk.CTkLabel(frame, text="🖼️", font=ctk.CTkFont(size=20), anchor="center")
+            shot_lbl.pack(expand=True, fill="both")
+
+            def _apply_shot(img, lbl=shot_lbl, m=mod):
+                if img and self.winfo_exists() and self.current_mod == m:
+                    lbl.configure(image=img, text="")
+
+            cached = ImageService.get_sync(shot_url, (140, 90))
+            if cached:
+                _apply_shot(cached)
+            else:
+                ImageService.get_async(shot_url, (140, 90), _apply_shot, root=self)
 
     def _render_stats(self, mod: ModItem):
         has_downloads = mod.total_downloads > 0

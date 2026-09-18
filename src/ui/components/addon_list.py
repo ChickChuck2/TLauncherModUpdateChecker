@@ -9,6 +9,7 @@ from typing import List, Callable, Optional
 
 from src.core.models import AddonType, AddonUpdateStatus
 from src.core.addon_models import AddonItem
+from src.services.image_service import ImageService
 
 
 SORT_OPTIONS = {
@@ -52,16 +53,21 @@ class AddonCard(ctk.CTkFrame):
     def _build(self):
         # Checkbox
         self.var = tk.BooleanVar(value=self.addon.selected)
-        can_select = self.addon.status in (AddonUpdateStatus.UPDATE_AVAILABLE, AddonUpdateStatus.TLAUNCHER_OK)
+        can_select = self.addon.status in (AddonUpdateStatus.TLAUNCHER_OK, AddonUpdateStatus.UPDATED)
         self.chk = ctk.CTkCheckBox(self, text="", variable=self.var, width=20,
                                    command=self._chk_changed,
                                    state="normal" if can_select else "disabled")
         self.chk.grid(row=0, column=0, rowspan=2, padx=(8, 4), pady=8, sticky="w")
 
-        # Ícone (emoji por tipo)
-        icon = "🎨" if self.addon.addon_type == AddonType.RESOURCE_PACK else "✨"
-        ctk.CTkLabel(self, text=icon, font=ctk.CTkFont(size=18), width=28,
-                     anchor="center").grid(row=0, column=1, rowspan=2, padx=(2, 8), pady=6, sticky="w")
+        # Ícone (emoji por tipo ou thumbnail)
+        default_icon = "🎨" if self.addon.addon_type == AddonType.RESOURCE_PACK else "✨"
+        self.icon_lbl = ctk.CTkLabel(
+            self, text=default_icon, font=ctk.CTkFont(size=18), width=28, height=28, anchor="center"
+        )
+        self.icon_lbl.grid(row=0, column=1, rowspan=2, padx=(2, 8), pady=6, sticky="w")
+        self.icon_lbl.bind("<Button-1>", self._click)
+        self._icon_image = None
+        self._load_icon()
 
         # Nome
         self.lbl_name = ctk.CTkLabel(self, text=self.addon.name,
@@ -89,6 +95,20 @@ class AddonCard(ctk.CTkFrame):
         self.badge.grid(row=0, column=3, rowspan=2, padx=(4, 10), pady=8, sticky="e")
         self.badge.bind("<Button-1>", self._click)
 
+    def _load_icon(self):
+        if not self.addon.icon_url:
+            return
+        cached = ImageService.get_sync(self.addon.icon_url, (28, 28))
+        if cached:
+            self._apply_icon(cached)
+        else:
+            ImageService.get_async(self.addon.icon_url, (28, 28), self._apply_icon, root=self)
+
+    def _apply_icon(self, img):
+        if img and self.winfo_exists():
+            self._icon_image = img
+            self.icon_lbl.configure(image=img, text="")
+
     def _click(self, _e=None):
         self.on_click(self.addon)
 
@@ -106,8 +126,10 @@ class AddonCard(ctk.CTkFrame):
         if self.addon.total_downloads > 0:
             info += f"  ⬇ {self.addon.downloads_display}"
         self.lbl_info.configure(text=info)
-        can_select = self.addon.status in (AddonUpdateStatus.UPDATE_AVAILABLE, AddonUpdateStatus.TLAUNCHER_OK)
+        can_select = self.addon.status in (AddonUpdateStatus.TLAUNCHER_OK, AddonUpdateStatus.UPDATED)
         self.chk.configure(state="normal" if can_select else "disabled")
+        if self.addon.icon_url and not self._icon_image:
+            self._load_icon()
 
 
 class AddonList(ctk.CTkFrame):

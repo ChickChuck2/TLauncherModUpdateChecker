@@ -17,6 +17,7 @@ TLAUNCHER_JSON_FILENAME = "TLauncherAdditional.json"
 # URLs de APIs e Repositórios
 TLAUNCHER_RES_BASE = "http://res.tlauncher.org/unb"
 CFWIDGET_API_BASE = "https://api.cfwidget.com"
+CURSE_TOOLS_API_BASE = "https://api.curse.tools/v1/cf"
 MODRINTH_API_BASE = "https://api.modrinth.com/v2"
 
 # Headers HTTP padrão

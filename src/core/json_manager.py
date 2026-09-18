@@ -81,6 +81,29 @@ class JsonManager:
             sha1 = meta.get("sha1", "")
             size = meta.get("size", 0)
 
+            # Metadados visuais e informativos já presentes no JSON do TLauncher
+            pic = raw.get("picture")
+            icon_url = f"https://rescl.tlauncher.org/b/pictures/compress/{pic}.png" if pic else None
+
+            raw_pics = raw.get("pictures", [])
+            screenshot_urls = [
+                f"https://rescl.tlauncher.org/b/pictures/max/{p}.png"
+                for p in raw_pics if p
+            ] if isinstance(raw_pics, list) else []
+
+            total_dl = raw.get("downloadALL", 0) or raw.get("download_count", 0) or 0
+            monthly_dl = raw.get("downloadMonth", 0) or 0
+
+            author_val = raw.get("author")
+            authors = [author_val] if isinstance(author_val, str) and author_val else []
+
+            cats_raw = raw.get("categories", [])
+            categories = [
+                c.get("name") or c.get("shortName")
+                for c in cats_raw
+                if isinstance(c, dict) and (c.get("name") or c.get("shortName"))
+            ] if isinstance(cats_raw, list) else []
+
             # Mods gerados pelo Sinytra Connector ou sem ID
             is_local = (mod_id is None) or (mod_id < 0) or user_install
             status = UpdateStatus.LOCAL_ONLY if is_local else UpdateStatus.PENDING
@@ -97,7 +120,13 @@ class JsonManager:
                 installed_size=size,
                 user_install=user_install,
                 status=status,
-                selected=False
+                selected=False,
+                icon_url=icon_url,
+                screenshot_urls=screenshot_urls,
+                total_downloads=total_dl,
+                monthly_downloads=monthly_dl,
+                authors=authors,
+                categories=categories,
             ))
 
         return ModpackInfo(

@@ -9,6 +9,7 @@ from typing import Optional
 
 from src.core.models import AddonUpdateStatus
 from src.core.addon_models import AddonItem
+from src.services.image_service import ImageService
 
 
 def _open(url: str):
@@ -111,6 +112,7 @@ class AddonDetailPanel(ctk.CTkFrame):
         self._render_header(addon)
         self._render_state_warning(addon)
         self._render_stats(addon)
+        self._render_screenshots(addon)
         self._render_version(addon)
         self._render_description(addon)
         self._render_links(addon)
@@ -135,7 +137,8 @@ class AddonDetailPanel(ctk.CTkFrame):
         self.lbl_authors.configure(text="")
         self.badge_status.configure(text="—", fg_color="#4a4a4a")
         self.btn_update.configure(state="disabled")
-        self.icon_lbl.configure(text="🎨")
+        self.icon_lbl.configure(text="🎨", image=None)
+        self._header_img = None
         ctk.CTkLabel(
             self.body,
             text="Clique em um addon da lista para ver os detalhes aqui.",
@@ -143,8 +146,9 @@ class AddonDetailPanel(ctk.CTkFrame):
         ).pack(pady=40, padx=20)
 
     def _render_header(self, addon: AddonItem):
-        icon = "🎨" if addon.addon_type.label == "Resource Pack" else "✨"
-        self.icon_lbl.configure(text=icon)
+        default_icon = "🎨" if addon.addon_type.label == "Resource Pack" else "✨"
+        self.icon_lbl.configure(text=default_icon, image=None)
+        self._header_img = None
         self.lbl_name.configure(text=addon.name)
         self.lbl_type.configure(text=f"  {addon.addon_type.label}")
         self.lbl_state.configure(
@@ -155,8 +159,49 @@ class AddonDetailPanel(ctk.CTkFrame):
             text=f"  ✍️ {', '.join(addon.authors)}" if addon.authors else "  Autor desconhecido"
         )
         self.badge_status.configure(text=addon.status.label, fg_color=addon.status.color)
-        can = addon.status in (AddonUpdateStatus.UPDATE_AVAILABLE, AddonUpdateStatus.TLAUNCHER_OK)
+        can = addon.status == AddonUpdateStatus.TLAUNCHER_OK
         self.btn_update.configure(state="normal" if can else "disabled")
+
+        if addon.icon_url:
+            cached = ImageService.get_sync(addon.icon_url, (56, 56))
+            if cached:
+                self._apply_header_icon(cached, addon)
+            else:
+                ImageService.get_async(
+                    addon.icon_url, (56, 56),
+                    lambda img, a=addon: self._apply_header_icon(img, a),
+                    root=self
+                )
+
+    def _apply_header_icon(self, img, target_addon):
+        if img and self.winfo_exists() and self.current_addon == target_addon:
+            self._header_img = img
+            self.icon_lbl.configure(image=img, text="")
+
+    def _render_screenshots(self, addon: AddonItem):
+        if not addon.screenshot_urls:
+            return
+        sec = self._section("📸 Imagens / Capturas de Tela")
+        scroll_row = ctk.CTkScrollableFrame(sec, orientation="horizontal", height=120, fg_color="transparent")
+        scroll_row.pack(fill="x", padx=0, pady=2)
+
+        for shot_url in addon.screenshot_urls[:6]:
+            frame = ctk.CTkFrame(scroll_row, width=150, height=95, fg_color="#161b22", corner_radius=6)
+            frame.pack(side="left", padx=4, pady=2)
+            frame.pack_propagate(False)
+
+            shot_lbl = ctk.CTkLabel(frame, text="🖼️", font=ctk.CTkFont(size=20), anchor="center")
+            shot_lbl.pack(expand=True, fill="both")
+
+            def _apply_shot(img, lbl=shot_lbl, a=addon):
+                if img and self.winfo_exists() and self.current_addon == a:
+                    lbl.configure(image=img, text="")
+
+            cached = ImageService.get_sync(shot_url, (140, 90))
+            if cached:
+                _apply_shot(cached)
+            else:
+                ImageService.get_async(shot_url, (140, 90), _apply_shot, root=self)
 
     def _render_state_warning(self, addon: AddonItem):
         """Exibe aviso destacado sobre preservação de estado ativo."""
