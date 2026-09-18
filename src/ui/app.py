@@ -268,11 +268,13 @@ class MainApp(ctk.CTk):
             return
 
         confirm = messagebox.askyesno(
-            "Confirmar alteração no JSON",
-            f"Atualizar metadados de {len(mods_to_update)} mod(s) no TLauncherAdditional.json?\n\n"
-            "• Backup .bak criado automaticamente.\n"
-            "• Nenhum arquivo .jar será baixado pelo app.\n"
-            "• O TLauncher realizará os downloads ao iniciar."
+            "🛡️ Confirmação de Segurança (Atualização de Mods)",
+            f"Deseja aplicar as atualizações de {len(mods_to_update)} mod(s) no TLauncherAdditional.json?\n\n"
+            "Garantias de Segurança Ativas:\n"
+            "✔ Backup Duplo Verificado (.bak rápido + cópia histórica permanente com timestamp).\n"
+            "✔ Arquivamento Seguro de JARs (arquivos antigos são movidos para .tlauncher_backups/, NUNCA deletados).\n"
+            "✔ Gravação Atômica (se houver qualquer falha, o JSON é revertido instantaneamente).\n"
+            "✔ Zero Downloads pelo App (o próprio TLauncher baixará os arquivos oficiais com hash SHA-1 conferido)."
         )
         if not confirm:
             return

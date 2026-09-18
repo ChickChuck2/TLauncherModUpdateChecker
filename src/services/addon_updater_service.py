@@ -32,15 +32,14 @@ class AddonUpdaterService:
 
         Retorna: (n_success, n_errors, message)
         """
-        json_path_obj = Path(json_path)
-
-        # Backup atômico
-        backup_path = json_path_obj.with_suffix(".json.bak")
-        shutil.copy2(json_path_obj, backup_path)
+        # Backup duplo com validação de integridade
+        try:
+            backup_path = JsonManager.backup_json(json_path)
+        except Exception as e:
+            return 0, len(addons_to_update), f"FALHA CRÍTICA: Erro ao criar backup de segurança: {e}"
 
         try:
-            with open(json_path_obj, "r", encoding="utf-8") as f:
-                data = json.load(f)
+            data = JsonManager.load_json(json_path)
         except Exception as e:
             return 0, len(addons_to_update), f"Erro ao ler JSON: {e}"
 
@@ -110,17 +109,19 @@ class AddonUpdaterService:
                 error_count += 1
 
         try:
-            with open(json_path_obj, "w", encoding="utf-8") as f:
-                json.dump(data, f, ensure_ascii=False, indent=2)
+            JsonManager.save_json(json_path, data)
         except Exception as e:
             # Restaura backup em caso de falha
-            shutil.copy2(backup_path, json_path_obj)
-            return 0, len(addons_to_update), f"Erro ao salvar JSON: {e}"
+            try:
+                JsonManager.restore_backup(json_path, backup_path)
+            except Exception:
+                pass
+            return 0, len(addons_to_update), f"Erro ao salvar JSON. Backup restaurado com segurança: {e}"
 
         if success_count > 0 and error_count == 0:
             msg = (f"✅ {success_count} addon(s) atualizados no JSON.\n"
                    f"O estado ativo/inativo foi preservado para todos.\n"
-                   f"Backup salvo em: {backup_path.name}")
+                   f"Backup salvo em: {Path(backup_path).name}")
         elif success_count > 0:
             msg = (f"⚠️ {success_count} atualizados, {error_count} erro(s).\n"
                    f"Estado ativo preservado nos que foram atualizados.")

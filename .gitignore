@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.bak
+*.SAFETY_MANUAL_SNAPSHOT
+.tlauncher_backups/
+venv/
+.env
+.idea/
+.vscode/

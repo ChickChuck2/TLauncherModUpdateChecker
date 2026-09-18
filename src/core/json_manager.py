@@ -7,6 +7,7 @@ import os
 import shutil
 import tempfile
 from typing import Optional, Tuple, Dict, Any, List
+from datetime import datetime
 from src.core.models import ModpackInfo, ModItem, UpdateStatus
 
 class JsonManager:
@@ -20,26 +21,83 @@ class JsonManager:
 
     @staticmethod
     def backup_json(filepath: str) -> str:
-        """Cria uma cópia de segurança .bak antes de qualquer alteração."""
+        """
+        Cria cópia de segurança dupla e à prova de falhas antes de qualquer alteração:
+        1. Cópia padrão filepath.bak (para restauração rápida do launcher).
+        2. Cópia histórica imutável com timestamp no diretório .tlauncher_backups/
+           ex: .tlauncher_backups/TLauncherAdditional_20260918_060530.json
+        Valida tamanho em bytes e existência de ambos os arquivos antes de liberar o fluxo.
+        """
+        if not os.path.exists(filepath):
+            raise FileNotFoundError(f"Arquivo original para backup não encontrado: {filepath}")
+
+        src_size = os.path.getsize(filepath)
+        if src_size == 0:
+            raise ValueError(f"Arquivo original está vazio (0 bytes): {filepath}")
+
+        # 1. Backup padrão .bak
         backup_path = filepath + ".bak"
         shutil.copy2(filepath, backup_path)
-        return backup_path
+        if not os.path.exists(backup_path) or os.path.getsize(backup_path) != src_size:
+            raise RuntimeError(f"Falha de integridade ao criar backup padrão: {backup_path}")
+
+        # 2. Backup histórico com timestamp no diretório .tlauncher_backups/
+        parent_dir = os.path.dirname(filepath)
+        backups_dir = os.path.join(parent_dir, ".tlauncher_backups")
+        os.makedirs(backups_dir, exist_ok=True)
+
+        timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+        hist_name = f"TLauncherAdditional_{timestamp_str}.json"
+        hist_path = os.path.join(backups_dir, hist_name)
+        shutil.copy2(filepath, hist_path)
+
+        if not os.path.exists(hist_path) or os.path.getsize(hist_path) != src_size:
+            raise RuntimeError(f"Falha de integridade ao criar backup histórico: {hist_path}")
+
+        return hist_path
 
     @staticmethod
     def save_json(filepath: str, data: Dict[str, Any]) -> bool:
         """
-        Salva o JSON de forma atômica para evitar corrupção de arquivo.
+        Salva o JSON de forma atômica e validada para evitar corrupção de arquivo:
+        1. Escreve em arquivo temporário no mesmo volume/diretório.
+        2. Valida se o arquivo temporário pode ser lido e possui JSON íntegro.
+        3. Substituição atômica segura no Windows com os.replace.
         """
         dir_name = os.path.dirname(filepath)
-        with tempfile.NamedTemporaryFile("w", dir=dir_name, delete=False, encoding="utf-8") as tmp_file:
-            json.dump(data, tmp_file, indent=2, ensure_ascii=False)
-            temp_name = tmp_file.name
+        temp_name = None
+        try:
+            with tempfile.NamedTemporaryFile("w", dir=dir_name, delete=False, encoding="utf-8") as tmp_file:
+                json.dump(data, tmp_file, indent=2, ensure_ascii=False)
+                temp_name = tmp_file.name
 
-        # Substituição atômica segura no Windows
-        if os.path.exists(filepath):
-            os.replace(temp_name, filepath)
-        else:
-            shutil.move(temp_name, filepath)
+            # Validação pós-escrita antes de substituir o arquivo original
+            with open(temp_name, "r", encoding="utf-8") as f_check:
+                check_data = json.load(f_check)
+                if not isinstance(check_data, dict):
+                    raise ValueError("Dados gerados no arquivo temporário não formam um objeto JSON válido.")
+
+            # Substituição atômica segura no Windows
+            if os.path.exists(filepath):
+                os.replace(temp_name, filepath)
+            else:
+                shutil.move(temp_name, filepath)
+            return True
+        except Exception as e:
+            if temp_name and os.path.exists(temp_name):
+                try:
+                    os.remove(temp_name)
+                except Exception:
+                    pass
+            raise e
+
+    @staticmethod
+    def restore_backup(filepath: str, backup_path: Optional[str] = None) -> bool:
+        """Restaura o arquivo JSON a partir de um backup específico ou do .bak padrão."""
+        target_backup = backup_path or (filepath + ".bak")
+        if not os.path.exists(target_backup):
+            raise FileNotFoundError(f"Arquivo de backup não encontrado: {target_backup}")
+        shutil.copy2(target_backup, filepath)
         return True
 
     @staticmethod
