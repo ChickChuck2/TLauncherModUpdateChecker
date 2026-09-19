@@ -19,8 +19,10 @@ from pathlib import Path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.core.models import ModItem, UpdateStatus
+from src.core.addon_models import AddonItem, AddonType, AddonUpdateStatus
 from src.core.json_manager import JsonManager
 from src.services.json_updater_service import JsonUpdaterService
+from src.services.addon_updater_service import AddonUpdaterService
 
 
 class TestBackupSafety(unittest.TestCase):
@@ -145,6 +147,59 @@ class TestBackupSafety(unittest.TestCase):
         # Valida que voltou ao JSON válido original
         restored = JsonManager.load_json(self.json_path)
         self.assertEqual(restored["modpack"]["name"], "SafetyTestPack")
+
+    def test_addon_updater_safety(self):
+        """Valida que AddonUpdaterService cria backup com JsonManager e atualiza sem erros."""
+        # Adiciona resource pack aos dados do modpack
+        data = JsonManager.load_json(self.json_path)
+        data["modpack"]["version"]["resourcePacks"] = [
+            {
+                "id": 201,
+                "name": "Test Texture",
+                "lanName": "test-texture",
+                "linkProject": "https://curseforge.com",
+                "stateGameElement": "active",
+                "version": {
+                    "id": 6001,
+                    "name": "test-texture-1.0.zip",
+                    "metadata": {
+                        "path": "resourcepacks/test-texture-1.0.zip",
+                        "url": "/resourcepacks/201/6001/test-texture-1.0.zip",
+                        "sha1": "1234567890abcdef",
+                        "size": 2048
+                    }
+                }
+            }
+        ]
+        JsonManager.save_json(self.json_path, data)
+
+        addon = AddonItem(
+            id=201,
+            name="Test Texture",
+            slug="test-texture",
+            link="https://curseforge.com",
+            addon_type=AddonType.RESOURCE_PACK,
+            state_game_element="active",
+            installed_file_id=6001,
+            installed_version_name="test-texture-1.0.zip",
+            installed_path="resourcepacks/test-texture-1.0.zip",
+            installed_url="/resourcepacks/201/6001/test-texture-1.0.zip",
+            status=AddonUpdateStatus.UPDATE_AVAILABLE,
+            latest_file_id=6002,
+            latest_version_name="test-texture-2.0.zip",
+            latest_url="/resourcepacks/201/6002/test-texture-2.0.zip"
+        )
+
+        success, errors, msg = AddonUpdaterService.apply_updates(self.json_path, [addon])
+        self.assertEqual(success, 1, f"Falha ao atualizar addon: {msg}")
+        self.assertEqual(errors, 0)
+        self.assertNotIn("FALHA CRÍTICA", msg)
+
+        # Valida que o JSON foi atualizado e stateGameElement preservado
+        updated_data = JsonManager.load_json(self.json_path)
+        entry = updated_data["modpack"]["version"]["resourcePacks"][0]
+        self.assertEqual(entry["version"]["id"], 6002)
+        self.assertEqual(entry["stateGameElement"], "active")
 
 
 if __name__ == "__main__":

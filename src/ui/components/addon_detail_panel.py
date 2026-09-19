@@ -3,6 +3,7 @@ Painel de detalhes para um AddonItem (Resource Pack ou Shader Pack).
 Exibe: ícone, estado ativo, comparativo de versão, descrição, links.
 """
 
+import threading
 import webbrowser
 import customtkinter as ctk
 from typing import Optional
@@ -10,6 +11,8 @@ from typing import Optional
 from src.core.models import AddonUpdateStatus
 from src.core.addon_models import AddonItem
 from src.services.image_service import ImageService
+from src.services.addon_service import AddonUpdateService
+from src.ui.components.rich_content_renderer import RichContentRenderer
 
 
 def _open(url: str):
@@ -262,15 +265,67 @@ class AddonDetailPanel(ctk.CTkFrame):
             ).pack(anchor="w", padx=2, pady=(4, 0))
 
     def _render_description(self, addon: AddonItem):
-        if not addon.description:
-            return
         sec = self._section("📝 Descrição")
-        ctk.CTkLabel(
-            sec,
-            text=addon.description[:500] + ("…" if len(addon.description) > 500 else ""),
-            font=ctk.CTkFont(size=12), text_color="#c9d1d9",
-            wraplength=400, justify="left", anchor="w"
-        ).pack(fill="x", padx=2, pady=4)
+        if addon.description or getattr(addon, "summary", ""):
+            RichContentRenderer.render_into(
+                parent=sec,
+                content=addon.description or "",
+                summary=getattr(addon, "summary", "") or None,
+                max_initial_blocks=10,
+            )
+        elif addon.id > 0:
+            lbl_loading = ctk.CTkLabel(
+                sec,
+                text="⚡ Carregando descrição oficial do addon...",
+                font=ctk.CTkFont(size=12, slant="italic"),
+                text_color="#8b949e",
+                anchor="w",
+            )
+            lbl_loading.pack(fill="x", padx=2, pady=4)
+            self._fetch_addon_description_async(addon, sec, lbl_loading)
+        else:
+            ctk.CTkLabel(
+                sec,
+                text="Nenhuma descrição disponível para este addon local.",
+                font=ctk.CTkFont(size=12, slant="italic"),
+                text_color="#6e7681",
+                anchor="w",
+            ).pack(fill="x", padx=2, pady=4)
+
+    def _fetch_addon_description_async(self, addon: AddonItem, sec: ctk.CTkFrame, lbl_loading: ctk.CTkLabel):
+        def _worker():
+            try:
+                data = AddonUpdateService.fetch_cfwidget(addon.id)
+                if data:
+                    addon.description = data.get("description", "") or addon.description
+                    addon.summary = data.get("summary", "") or getattr(addon, "summary", "")
+                    if not addon.icon_url and data.get("thumbnail"):
+                        addon.icon_url = data.get("thumbnail")
+            except Exception:
+                pass
+
+            def _update_ui():
+                try:
+                    if not self.winfo_exists() or self.current_addon != addon:
+                        return
+                    if hasattr(lbl_loading, "winfo_exists") and lbl_loading.winfo_exists():
+                        lbl_loading.destroy()
+                    RichContentRenderer.render_into(
+                        parent=sec,
+                        content=addon.description or "",
+                        summary=getattr(addon, "summary", "") or None,
+                        max_initial_blocks=10,
+                    )
+                except Exception:
+                    pass
+
+            try:
+                if self.winfo_exists():
+                    self.after(0, _update_ui)
+            except Exception:
+                pass
+
+        threading.Thread(target=_worker, daemon=True).start()
 
     def _render_links(self, addon: AddonItem):
         links = []

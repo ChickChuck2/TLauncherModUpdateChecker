@@ -4,11 +4,14 @@ Exibe: ícone, descrição, categorias, autores, downloads, links, changelog,
 dependências, tipo de release e comparativo de versão.
 """
 
+import threading
 import webbrowser
 import customtkinter as ctk
 from typing import Optional
 from src.core.models import ModItem, UpdateStatus
 from src.services.image_service import ImageService
+from src.services.update_service import UpdateService
+from src.ui.components.rich_content_renderer import RichContentRenderer
 
 
 def _open_url(url: str):
@@ -265,25 +268,79 @@ class DetailPanel(ctk.CTkFrame):
             ).pack(anchor="w", padx=2, pady=(4, 0))
 
     def _render_description(self, mod: ModItem):
-        if not mod.description:
-            return
         sec = self._section("📝 Descrição")
-        ctk.CTkLabel(
-            sec, text=mod.description[:600] + ("…" if len(mod.description) > 600 else ""),
-            font=ctk.CTkFont(size=12), text_color="#c9d1d9",
-            wraplength=400, justify="left", anchor="w"
-        ).pack(fill="x", padx=2, pady=4)
+        if mod.description or getattr(mod, "summary", ""):
+            RichContentRenderer.render_into(
+                parent=sec,
+                content=mod.description or "",
+                summary=getattr(mod, "summary", "") or None,
+                max_initial_blocks=10,
+            )
+        elif mod.id > 0:
+            lbl_loading = ctk.CTkLabel(
+                sec,
+                text="⚡ Carregando descrição oficial do mod...",
+                font=ctk.CTkFont(size=12, slant="italic"),
+                text_color="#8b949e",
+                anchor="w",
+            )
+            lbl_loading.pack(fill="x", padx=2, pady=4)
+            self._fetch_mod_description_async(mod, sec, lbl_loading)
+        else:
+            ctk.CTkLabel(
+                sec,
+                text="Nenhuma descrição disponível para este mod local.",
+                font=ctk.CTkFont(size=12, slant="italic"),
+                text_color="#6e7681",
+                anchor="w",
+            ).pack(fill="x", padx=2, pady=4)
+
+    def _fetch_mod_description_async(self, mod: ModItem, sec: ctk.CTkFrame, lbl_loading: ctk.CTkLabel):
+        def _worker():
+            try:
+                data = UpdateService.fetch_cfwidget_full(mod.id, game_version="")
+                if not data and mod.slug:
+                    data = UpdateService.fetch_modrinth_full(mod.slug, game_version="")
+                if data:
+                    mod.description = data.get("description", "") or mod.description
+                    mod.summary = data.get("summary", "") or getattr(mod, "summary", "")
+                    if not mod.icon_url and data.get("icon_url"):
+                        mod.icon_url = data.get("icon_url")
+            except Exception:
+                pass
+
+            def _update_ui():
+                try:
+                    if not self.winfo_exists() or self.current_mod != mod:
+                        return
+                    if hasattr(lbl_loading, "winfo_exists") and lbl_loading.winfo_exists():
+                        lbl_loading.destroy()
+                    RichContentRenderer.render_into(
+                        parent=sec,
+                        content=mod.description or "",
+                        summary=getattr(mod, "summary", "") or None,
+                        max_initial_blocks=10,
+                    )
+                except Exception:
+                    pass
+
+            try:
+                if self.winfo_exists():
+                    self.after(0, _update_ui)
+            except Exception:
+                pass
+
+        threading.Thread(target=_worker, daemon=True).start()
 
     def _render_changelog(self, mod: ModItem):
         if not mod.latest_changelog:
             return
         sec = self._section("📋 O que mudou nessa versão")
-        changelog_text = mod.latest_changelog[:800] + ("…" if len(mod.latest_changelog) > 800 else "")
-        box = ctk.CTkTextbox(sec, height=100, font=ctk.CTkFont(size=11), wrap="word",
-                             fg_color="#161b22", text_color="#c9d1d9", corner_radius=6)
-        box.pack(fill="x", padx=2, pady=4)
-        box.insert("1.0", changelog_text)
-        box.configure(state="disabled")
+        RichContentRenderer.render_into(
+            parent=sec,
+            content=mod.latest_changelog or "",
+            max_initial_blocks=8,
+        )
 
     def _render_links(self, mod: ModItem):
         links = []

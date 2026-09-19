@@ -159,6 +159,7 @@ class AddonUpdateService:
         if cats:
             addon.categories = [str(c) for c in cats]
         addon.icon_url = data.get("thumbnail") or addon.icon_url
+        addon.summary = data.get("summary", "") or getattr(addon, "summary", "")
         addon.description = data.get("description", "") or addon.description
 
         # --- Arquivo mais recente para a versão do jogo ---

@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import List, Tuple
 from src.core.models import AddonType, AddonUpdateStatus
 from src.core.addon_models import AddonItem
+from src.core.json_manager import JsonManager
 from src.services.update_service import UpdateService
 
 

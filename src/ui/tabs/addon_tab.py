@@ -179,7 +179,11 @@ class AddonTab(ctk.CTkFrame):
         total = len(addons)
 
         def on_progress(current: int, _total: int, addon: AddonItem):
-            self.after(0, self._on_progress_tick, current, total, addon)
+            try:
+                if self.winfo_exists():
+                    self.after(0, self._on_progress_tick, current, total, addon)
+            except Exception:
+                pass
 
         AddonUpdateService.check_all_addons(
             addons=addons,
@@ -187,22 +191,36 @@ class AddonTab(ctk.CTkFrame):
             progress_callback=on_progress,
             max_workers=6,
         )
-        self.after(0, self._check_done)
+        try:
+            if self.winfo_exists():
+                self.after(0, self._check_done)
+        except Exception:
+            pass
 
     def _on_progress_tick(self, current: int, total: int, addon: AddonItem):
-        self.progress.set(current / total)
-        self.lbl_status.configure(text=f"Verificando: {addon.name}")
-        self.addon_list.refresh_cards()
-        if self.detail_panel.current_addon and self.detail_panel.current_addon.id == addon.id:
-            self.detail_panel.show_addon(addon)
+        try:
+            if not self.winfo_exists():
+                return
+            self.progress.set(current / total)
+            self.lbl_status.configure(text=f"Verificando: {addon.name}")
+            self.addon_list.refresh_cards()
+            if self.detail_panel.current_addon and self.detail_panel.current_addon.id == addon.id:
+                self.detail_panel.show_addon(addon)
+        except Exception:
+            pass
 
     def _check_done(self):
-        self.is_checking = False
-        self.btn_check.configure(state="normal")
-        self.btn_apply.configure(state="normal")
-        self.progress.set(1)
-        self.addon_list.refresh_cards()
-        self.lbl_status.configure(text=self._summary_text())
+        try:
+            if not self.winfo_exists():
+                return
+            self.is_checking = False
+            self.btn_check.configure(state="normal")
+            self.btn_apply.configure(state="normal")
+            self.progress.set(1)
+            self.addon_list.refresh_cards()
+            self.lbl_status.configure(text=self._summary_text())
+        except Exception:
+            pass
 
     def _on_apply_all(self):
         selected = self.addon_list.get_selected()

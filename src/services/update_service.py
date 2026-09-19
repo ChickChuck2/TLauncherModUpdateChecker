@@ -82,6 +82,7 @@ class UpdateService:
 
         # ---- Metadados gerais do Mod ----
         meta = {
+            "summary": data.get("summary", "") or "",
             "description": data.get("description", ""),
             "icon_url": data.get("thumbnail", None),
             "categories": [str(c) for c in data.get("categories", [])],
@@ -156,7 +157,8 @@ class UpdateService:
             return None
 
         meta = {
-            "description": proj_data.get("description", ""),
+            "summary": proj_data.get("description", "") or "",
+            "description": proj_data.get("body", "") or proj_data.get("description", "") or "",
             "icon_url": proj_data.get("icon_url", None),
             "categories": proj_data.get("categories", []),
             "authors": [],
@@ -227,6 +229,7 @@ class UpdateService:
 
         # ---- Preenche metadados do mod ----
         mod.provider = data.get("provider", "")
+        mod.summary = data.get("summary", "") or mod.summary
         mod.description = data.get("description", "") or mod.description
         mod.icon_url = data.get("icon_url") or mod.icon_url
         mod.categories = data.get("categories") or mod.categories

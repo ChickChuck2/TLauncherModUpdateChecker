@@ -5,6 +5,7 @@ Componente de Seleção de Modpack e Botões de Controle.
 import customtkinter as ctk
 from typing import Callable, List, Optional
 from src.core.models import ModpackInfo
+from src.services.settings_service import SettingsService
 
 class PackSelector(ctk.CTkFrame):
     def __init__(
@@ -90,7 +91,28 @@ class PackSelector(ctk.CTkFrame):
             fg_color="#27ae60",
             hover_color="#1e8449"
         )
-        self.btn_apply.grid(row=0, column=5, padx=(6, 16), pady=12)
+        self.btn_apply.grid(row=0, column=5, padx=6, pady=12)
+
+        # Botão Gerenciador de Backups
+        self.btn_backups = ctk.CTkButton(
+            self,
+            text="🛡️ Backups",
+            width=95,
+            command=self._on_backups_clicked,
+            fg_color="#4a5568",
+            hover_color="#2d3748"
+        )
+        self.btn_backups.grid(row=0, column=6, padx=(6, 16), pady=12)
+
+    def _on_backups_clicked(self):
+        if not self.selected_pack:
+            return
+        from src.ui.components.backup_dialog import BackupManagerDialog
+        BackupManagerDialog(
+            self,
+            modpack=self.selected_pack,
+            on_restored=self.on_refresh_packs_clicked
+        )
 
     def set_modpacks(self, modpacks: List[ModpackInfo]):
         self.modpacks = modpacks
@@ -103,8 +125,18 @@ class PackSelector(ctk.CTkFrame):
 
         names = [f"{p.name} ({p.folder_name})" for p in modpacks]
         self.combo_packs.configure(values=names)
-        self.combo_packs.set(names[0])
-        self._select_pack_by_index(0)
+
+        # Restaura o último modpack selecionado, se disponível
+        last_pack = SettingsService.get_last_modpack()
+        selected_idx = 0
+        if last_pack:
+            for i, p in enumerate(modpacks):
+                if p.folder_name == last_pack or p.name == last_pack:
+                    selected_idx = i
+                    break
+
+        self.combo_packs.set(names[selected_idx])
+        self._select_pack_by_index(selected_idx)
 
     def _on_combo_change(self, choice: str):
         idx = self.combo_packs.cget("values").index(choice)
@@ -116,6 +148,7 @@ class PackSelector(ctk.CTkFrame):
         p = self.selected_pack
         info_text = f"🎮 MC: {p.game_version} | ⚙️ Loader: {p.loader.capitalize()} | 🧩 Mods: {p.total_mods}"
         self.lbl_pack_info.configure(text=info_text)
+        SettingsService.set_last_modpack(p.folder_name)
         self.on_pack_selected(self.selected_pack)
 
     def set_buttons_enabled(self, enabled: bool):
@@ -124,3 +157,4 @@ class PackSelector(ctk.CTkFrame):
         self.btn_refresh.configure(state=state)
         self.btn_check.configure(state=state)
         self.btn_apply.configure(state=state)
+        self.btn_backups.configure(state=state)

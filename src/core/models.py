@@ -136,6 +136,7 @@ class ModItem:
     user_install: bool = False
 
     # --- Metadados do Mod (Informativos) ---
+    summary: str = ""
     description: str = ""
     icon_url: Optional[str] = None
     screenshot_urls: List[str] = field(default_factory=list)
@@ -175,6 +176,36 @@ class ModItem:
         if n >= 1_000:
             return f"{n/1_000:.0f}K"
         return str(n)
+
+    @property
+    def size_display(self) -> str:
+        """Formata o tamanho do arquivo em MB ou KB de forma legível."""
+        s = self.installed_size or 0
+        if s <= 0 and self.latest_size:
+            s = self.latest_size
+        if s >= 1_048_576:
+            return f"{s / 1_048_576:.1f} MB"
+        if s >= 1024:
+            return f"{s / 1024:.0f} KB"
+        if s > 0:
+            return f"{s} B"
+        return "—"
+
+    @property
+    def is_heavy(self) -> bool:
+        """Indica se o mod é pesado (>= 5 MB)."""
+        s = self.installed_size or 0
+        if s <= 0 and self.latest_size:
+            s = self.latest_size
+        return s >= 5 * 1024 * 1024
+
+    @property
+    def is_very_heavy(self) -> bool:
+        """Indica se o mod é muito pesado (>= 10 MB)."""
+        s = self.installed_size or 0
+        if s <= 0 and self.latest_size:
+            s = self.latest_size
+        return s >= 10 * 1024 * 1024
 
     @property
     def is_official(self) -> bool:

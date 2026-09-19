@@ -30,6 +30,7 @@ class AddonItem:
     parser: bool = False           # True = controlado pelo TLauncher, False = arquivo local
 
     # --- Metadados Informativos ---
+    summary: str = ""
     description: str = ""
     icon_url: Optional[str] = None
     screenshot_urls: List[str] = field(default_factory=list)

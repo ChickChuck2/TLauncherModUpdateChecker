@@ -192,7 +192,11 @@ class MainApp(ctk.CTk):
 
     def _run_check_thread(self, pack, valid):
         def on_progress(current: int, total: int, mod: ModItem):
-            self.after(0, self._on_progress_tick, current, total, mod)
+            try:
+                if self.winfo_exists():
+                    self.after(0, self._on_progress_tick, current, total, mod)
+            except Exception:
+                pass
 
         UpdateService.check_all_mods(
             mods=valid,
@@ -201,39 +205,53 @@ class MainApp(ctk.CTk):
             progress_callback=on_progress,
             max_workers=8,
         )
-        self.after(0, self._check_done)
+        try:
+            if self.winfo_exists():
+                self.after(0, self._check_done)
+        except Exception:
+            pass
 
     def _on_progress_tick(self, current: int, total: int, mod: ModItem):
         """
         Chamado a cada mod concluído — atualiza APENAS o card daquele mod
         em vez de re-renderizar a lista inteira.
         """
-        # Atualiza barra e indicador do mod verificado
-        self.progress_panel.tick(
-            current=current,
-            total=total,
-            mod_name=mod.name,
-            status_label=mod.status.label,
-            status_color=mod.status.color,
-        )
+        try:
+            if not self.winfo_exists():
+                return
+            # Atualiza barra e indicador do mod verificado
+            self.progress_panel.tick(
+                current=current,
+                total=total,
+                mod_name=mod.name,
+                status_label=mod.status.label,
+                status_color=mod.status.color,
+            )
 
-        # Atualiza só o card deste mod (O(1))
-        self.mod_list.refresh_card_for_mod(mod)
+            # Atualiza só o card deste mod (O(1))
+            self.mod_list.refresh_card_for_mod(mod)
 
-        # Atualiza estatísticas (badges numéricas)
-        self._refresh_stats()
+            # Atualiza estatísticas (badges numéricas)
+            self._refresh_stats()
 
-        # Se o painel de detalhe exibe este mod, atualiza-o
-        if self.detail_panel.current_mod and self.detail_panel.current_mod.id == mod.id:
-            self.detail_panel.show_mod(mod)
+            # Se o painel de detalhe exibe este mod, atualiza-o
+            if self.detail_panel.current_mod and self.detail_panel.current_mod.id == mod.id:
+                self.detail_panel.show_mod(mod)
+        except Exception:
+            pass
 
     def _check_done(self):
-        self.is_checking = False
-        self.pack_selector.set_buttons_enabled(True)
-        self._refresh_stats()
+        try:
+            if not self.winfo_exists():
+                return
+            self.is_checking = False
+            self.pack_selector.set_buttons_enabled(True)
+            self._refresh_stats()
 
-        # Re-renderiza com ordenação final (agora por popularidade com updates no topo)
-        self.mod_list._refresh()
+            # Re-renderiza com ordenação final (agora por popularidade com updates no topo)
+            self.mod_list._refresh()
+        except Exception:
+            pass
 
         mods = self.current_modpack.mods if self.current_modpack else []
         updates = sum(

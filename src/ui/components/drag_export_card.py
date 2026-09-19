@@ -149,17 +149,36 @@ class DragExportCard(ctk.CTkFrame):
             self.zip_path = zip_p
 
             def update_ui():
-                size_str = f"{size_kb / 1024:.1f} MB" if size_kb >= 1024 else f"{size_kb:.0f} KB"
-                self.lbl_badge.configure(text=f"📦 {size_str} ({files} arqs)")
-                self.lbl_desc.configure(
-                    text=f"Pronto para envio! Arraste ou clique em Copiar ZIP ({files} arqs de config, json e opções)."
-                )
+                try:
+                    if not self.winfo_exists():
+                        return
+                    size_str = f"{size_kb / 1024:.1f} MB" if size_kb >= 1024 else f"{size_kb:.0f} KB"
+                    self.lbl_badge.configure(text=f"📦 {size_str} ({files} arqs)")
+                    self.lbl_desc.configure(
+                        text=f"Pronto para envio! Arraste ou clique em Copiar ZIP ({files} arqs de config, json e opções)."
+                    )
+                except Exception:
+                    pass
 
-            self.after(0, update_ui)
+            try:
+                if self.winfo_exists():
+                    self.after(0, update_ui)
+            except Exception:
+                pass
         except Exception as e:
             def update_err():
-                self.lbl_badge.configure(text="Erro ao gerar ZIP")
-            self.after(0, update_err)
+                try:
+                    if not self.winfo_exists():
+                        return
+                    self.lbl_badge.configure(text="Erro ao gerar ZIP")
+                except Exception:
+                    pass
+
+            try:
+                if self.winfo_exists():
+                    self.after(0, update_err)
+            except Exception:
+                pass
         finally:
             self.is_packing = False
 
@@ -200,13 +219,23 @@ class DragExportCard(ctk.CTkFrame):
     def _run_native_drag(self, zip_path: str):
         PackExportService.start_native_drag(zip_path)
         def reset():
-            self._drag_started = False
-            self.configure(border_color="#30363d", fg_color="#161b22")
-            self.lbl_desc.configure(
-                text="Segure e arraste este card para fora (Discord, pasta) ou clique em Copiar.",
-                text_color="#8b949e"
-            )
-        self.after(500, reset)
+            try:
+                if not self.winfo_exists():
+                    return
+                self._drag_started = False
+                self.configure(border_color="#30363d", fg_color="#161b22")
+                self.lbl_desc.configure(
+                    text="Segure e arraste este card para fora (Discord, pasta) ou clique em Copiar.",
+                    text_color="#8b949e"
+                )
+            except Exception:
+                pass
+
+        try:
+            if self.winfo_exists():
+                self.after(500, reset)
+        except Exception:
+            pass
 
     def _on_mouse_up(self, event):
         self.configure(border_color="#30363d", fg_color="#161b22")
@@ -230,13 +259,22 @@ class DragExportCard(ctk.CTkFrame):
             )
 
             def restore():
-                self.btn_copy.configure(text=original_text, fg_color="#238636")
-                self.lbl_desc.configure(
-                    text="Segure e arraste este card para fora (Discord, pasta) ou clique em Copiar.",
-                    text_color="#8b949e"
-                )
+                try:
+                    if not self.winfo_exists():
+                        return
+                    self.btn_copy.configure(text=original_text, fg_color="#238636")
+                    self.lbl_desc.configure(
+                        text="Segure e arraste este card para fora (Discord, pasta) ou clique em Copiar.",
+                        text_color="#8b949e"
+                    )
+                except Exception:
+                    pass
 
-            self.after(3000, restore)
+            try:
+                if self.winfo_exists():
+                    self.after(3000, restore)
+            except Exception:
+                pass
 
     def _on_open_clicked(self):
         pack_dir = self._get_pack_dir()
